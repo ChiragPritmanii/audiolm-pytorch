@@ -683,6 +683,9 @@ class SoundStreamTrainer(nn.Module):
             val_wave, = next(self.valid_dl_iter)
             val_wave = wave.to(device)
 
+            print("Train Wave Shape",wave.shape)
+            print("Val Wave Shape",val_wave.shape)
+
             filename = str(self.results_folder / f'sample_val_gt_{label_step}.flac')
             torchaudio.save(filename, val_wave.cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
 
