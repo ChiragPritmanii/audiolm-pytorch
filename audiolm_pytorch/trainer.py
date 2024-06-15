@@ -677,37 +677,36 @@ class SoundStreamTrainer(nn.Module):
             
             #use one sample from train one sample from valid
             label_step = models[0][1]
+
+            waves = wave.unbind(dim = 0)
             filename = str(self.results_folder / f'sample_train_gt_{label_step}.flac')
-            torchaudio.save(filename, wave.cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
-            print("Wave CPU Detach:", wave.cpu().detach().shape)
-
-
+            torchaudio.save(filename, waves[0].cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
+            
             val_wave, = next(self.valid_dl_iter)
             val_wave = wave.to(device)
 
-            print("Train Wave Shape",wave.shape)
-            print("Val Wave Shape",val_wave.shape)
-
+            val_waves = val_wave.unbind(dim = 0)
             filename = str(self.results_folder / f'sample_val_gt_{label_step}.flac')
-            torchaudio.save(filename, val_wave.cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
-            print("Val Wave CPU Detach:", val_wave.cpu().detach().shape)
+            torchaudio.save(filename, val_waves[0].cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
+            print("Val Wave CPU Detach:", val_waves[0].cpu().detach().shape)
 
             for model, label in models:
                 model.eval()
                 model = model.to(device)
 
                 with torch.inference_mode():
-                    recons = model(wave, return_recons_only = True)
-                    val_recons = model(val_wave, return_recons_only = True)
+                    recons = model(waves[0].reshape(1,-1), return_recons_only = True)
+                    val_recons = model(val_waves[0].reshape(1,-1), return_recons_only = True)
 
                 for ind, recon in enumerate(recons.unbind(dim = 0)):
                     filename = str(self.results_folder / f'sample_train_recon_{label}.flac')
                     torchaudio.save(filename, recon.cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
-                    print("Val Recon CPU Detach:", recon.cpu().detach().shape)
+                    print("Train Recon CPU Detach:", recon.cpu().detach().shape)
                 
                 for ind, recon in enumerate(val_recons.unbind(dim = 0)):
                     filename = str(self.results_folder / f'sample_val_recon_{label}.flac')
                     torchaudio.save(filename, recon.cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
+                    print("Val Recon CPU Detach:", recon.cpu().detach().shape)
 
             self.print(f'{steps}: saving to {str(self.results_folder)}')
 
