@@ -700,6 +700,7 @@ class SoundStreamTrainer(nn.Module):
                 with torch.inference_mode():
                     recons = model(waves[0].reshape(1,-1), return_recons_only = True)
                     val_recons = model(val_waves[0].reshape(1,-1), return_recons_only = True)
+                    print("Recons Shape:", recons.shape)
 
                 for ind, recon in enumerate(recons.unbind(dim = 0)):
                     filename = str(self.results_folder / f'sample_train_recon_{label}.flac')
