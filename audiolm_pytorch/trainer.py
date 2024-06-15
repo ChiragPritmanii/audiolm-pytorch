@@ -681,6 +681,8 @@ class SoundStreamTrainer(nn.Module):
             waves = wave.unbind(dim = 0)
             filename = str(self.results_folder / f'sample_train_gt_{label_step}.flac')
             torchaudio.save(filename, waves[0].reshape(1,-1).cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
+            print("Length waves:", len(waves))
+            print("Wave CPU Detach:", waves[0].reshape(1,-1).cpu().detach().shape)
 
             val_wave, = next(self.valid_dl_iter)
             val_wave = wave.to(device)
@@ -688,7 +690,8 @@ class SoundStreamTrainer(nn.Module):
             val_waves = val_wave.unbind(dim = 0)
             filename = str(self.results_folder / f'sample_val_gt_{label_step}.flac')
             torchaudio.save(filename, val_waves[0].reshape(1,-1).cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
-            print("Val Wave CPU Detach:", val_waves[0].cpu().detach().shape)
+            print("Length waves:", len(val_waves))
+            print("Val Wave CPU Detach:", val_waves[0].reshape(1,-1).cpu().detach().shape)
 
             for model, label in models:
                 model.eval()
