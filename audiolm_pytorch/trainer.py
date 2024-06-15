@@ -239,17 +239,17 @@ class SoundStreamTrainer(nn.Module):
         results_folder: str = './results',
         valid_frac: float = 0.05,
         random_split_seed: int = 42,
-        use_ema: bool = True,
+        use_ema: bool = True, #ema models are usually used in inference
         ema_beta: float = 0.995,
         ema_update_after_step: int = 500,
         ema_update_every: int = 10,
         apply_grad_penalty_every: int = 4,
-        dl_num_workers: int = 0,
+        dl_num_workers: int = 0, #change to 2,4,8 anything 
         accelerator: Optional[Accelerator] = None,
         accelerate_kwargs: dict = dict(),
         init_process_group_timeout_seconds = 1800,
         dataloader_drop_last = True,
-        split_batches = False,
+        split_batches = False, #keep it to false because we only use one gpu for training
         use_wandb_tracking = False,
         force_clear_prev_results: bool = None  # set to True | False to skip the prompt
     ):
@@ -309,6 +309,9 @@ class SoundStreamTrainer(nn.Module):
 
         discr_warmup_steps = default(discr_warmup_steps, warmup_steps)
 
+        # learning rate and weight decay same for discriminator and non-discriminator
+        # this is using the adamw optimizer only with betas, not wight decay
+        # its preferred to keep it as is only tweak the batch sizes
         for discr_optimizer_key, discr in self.multiscale_discriminator_iter():
             one_multiscale_discr_optimizer = OptimizerWithWarmupSchedule(
                 self.accelerator,
@@ -342,7 +345,7 @@ class SoundStreamTrainer(nn.Module):
 
             if exists(data_max_length_seconds):
                 assert not exists(data_max_length)
-                data_max_length = int(data_max_length_seconds * soundstream.target_sample_hz)
+                data_max_length = int(data_max_length_seconds * soundstream.target_sample_hz) #total samples
             else:
                 assert exists(data_max_length)
 
@@ -642,7 +645,9 @@ class SoundStreamTrainer(nn.Module):
 
         for key, loss in logs.items():
             if not key.startswith('scale:'):
-                continue
+                #add all other losses here 
+                losses_str += f" | {key}: {loss:.3f}"
+                continue 
             _, scale_factor = key.split(':')
 
             losses_str += f" | discr (scale {scale_factor}) loss: {loss:.3f}"
@@ -669,9 +674,16 @@ class SoundStreamTrainer(nn.Module):
             models = [(self.unwrapped_soundstream, str(steps))]
             if self.use_ema:
                 models.append((self.ema_soundstream.ema_model if self.use_ema else self.unwrapped_soundstream, f'{steps}.ema'))
+            
+            #use one sample from train one sample from valid
+            filename = str(self.results_folder / f'sample_train_gt_{label}.flac')
+            torchaudio.save(filename, wave.cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
 
-            wave, = next(self.valid_dl_iter)
-            wave = wave.to(device)
+            val_wave, = next(self.valid_dl_iter)
+            val_wave = wave.to(device)
+
+            filename = str(self.results_folder / f'sample_val_gt_{label}.flac')
+            torchaudio.save(filename, val_wave.cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
 
             for model, label in models:
                 model.eval()
@@ -679,9 +691,14 @@ class SoundStreamTrainer(nn.Module):
 
                 with torch.inference_mode():
                     recons = model(wave, return_recons_only = True)
+                    val_recons = model(val_wave, return_recons_only = True)
 
                 for ind, recon in enumerate(recons.unbind(dim = 0)):
-                    filename = str(self.results_folder / f'sample_{label}.flac')
+                    filename = str(self.results_folder / f'sample_train_recon_{label}.flac')
+                    torchaudio.save(filename, recon.cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
+                
+                for ind, recon in enumerate(val_recons.unbind(dim = 0)):
+                    filename = str(self.results_folder / f'sample_val_recon_{label}.flac')
                     torchaudio.save(filename, recon.cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
 
             self.print(f'{steps}: saving to {str(self.results_folder)}')

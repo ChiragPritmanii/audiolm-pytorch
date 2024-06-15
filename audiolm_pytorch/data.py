@@ -67,7 +67,7 @@ class SoundDataset(Dataset):
     def __getitem__(self, idx):
         file = self.files[idx]
 
-        data, sample_hz = torchaudio.load(file)
+        data, sample_hz = torchaudio.load(file, backend="ffmpeg")
 
         assert data.numel() > 0, f'one of your audio file ({file}) is empty. please remove it from your folder'
 
@@ -88,10 +88,10 @@ class SoundDataset(Dataset):
         if exists(max_length):
             if audio_length > max_length:
                 max_start = audio_length - max_length
-                start = torch.randint(0, max_start, (1, ))
+                start = torch.randint(0, max_start, (1, )) #choose a start number that has capacity to get upto the max length without padding
                 data = data[:, start:start + max_length]
             else:
-                data = F.pad(data, (0, max_length - audio_length), 'constant')
+                data = F.pad(data, (0, max_length - audio_length), 'constant') #pad the data upto max length 
 
         data = rearrange(data, '1 ... -> ...')
 
