@@ -676,13 +676,14 @@ class SoundStreamTrainer(nn.Module):
                 models.append((self.ema_soundstream.ema_model if self.use_ema else self.unwrapped_soundstream, f'{steps}.ema'))
             
             #use one sample from train one sample from valid
-            filename = str(self.results_folder / f'sample_train_gt_{label}.flac')
+            label_step = models[0][1]
+            filename = str(self.results_folder / f'sample_train_gt_{label_step}.flac')
             torchaudio.save(filename, wave.cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
 
             val_wave, = next(self.valid_dl_iter)
             val_wave = wave.to(device)
 
-            filename = str(self.results_folder / f'sample_val_gt_{label}.flac')
+            filename = str(self.results_folder / f'sample_val_gt_{label_step}.flac')
             torchaudio.save(filename, val_wave.cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
 
             for model, label in models:
