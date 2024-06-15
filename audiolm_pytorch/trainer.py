@@ -703,6 +703,7 @@ class SoundStreamTrainer(nn.Module):
                 for ind, recon in enumerate(recons.unbind(dim = 0)):
                     filename = str(self.results_folder / f'sample_train_recon_{label}.flac')
                     torchaudio.save(filename, recon.cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
+                    print("Val Recon CPU Detach:", recon.cpu().detach().shape)
                 
                 for ind, recon in enumerate(val_recons.unbind(dim = 0)):
                     filename = str(self.results_folder / f'sample_val_recon_{label}.flac')
