@@ -719,7 +719,7 @@ class SoundStreamTrainer(nn.Module):
             # Recons Shape: torch.Size([1, 1, 32000])
             # Train Recon CPU Detach: torch.Size([1, 32000])
             # Val Recon CPU Detach: torch.Size([1, 32000])
-            # Recons Shape: torch.Size([1, 1, 32000])
+            # Recons Shape: torch.Size([1, 1, 32000]) #if batch size of 8 (8,1,32000)
             # Train Recon CPU Detach: torch.Size([1, 32000])
             # Val Recon CPU Detach: torch.Size([1, 32000])
 
