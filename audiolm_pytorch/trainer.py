@@ -690,8 +690,8 @@ class SoundStreamTrainer(nn.Module):
             val_waves = val_wave.unbind(dim = 0)
             filename = str(self.results_folder / f'sample_val_gt_{label_step}.flac')
             torchaudio.save(filename, val_waves[0].reshape(1,-1).cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
-            print("Length waves:", len(val_waves))
-            print("Val Wave CPU Detach:", val_waves[0].reshape(1,-1).cpu().detach().shape)
+            # print("Length waves:", len(val_waves))
+            # print("Val Wave CPU Detach:", val_waves[0].reshape(1,-1).cpu().detach().shape)
 
             for model, label in models:
                 model.eval()
@@ -700,17 +700,28 @@ class SoundStreamTrainer(nn.Module):
                 with torch.inference_mode():
                     recons = model(waves[0].reshape(1,-1), return_recons_only = True)
                     val_recons = model(val_waves[0].reshape(1,-1), return_recons_only = True)
-                    print("Recons Shape:", recons.shape)
+                    # print("Recons Shape:", recons.shape)
 
                 for ind, recon in enumerate(recons.unbind(dim = 0)):
                     filename = str(self.results_folder / f'sample_train_recon_{label}.flac')
                     torchaudio.save(filename, recon.cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
-                    print("Train Recon CPU Detach:", recon.cpu().detach().shape)
+                    # print("Train Recon CPU Detach:", recon.cpu().detach().shape)
                 
                 for ind, recon in enumerate(val_recons.unbind(dim = 0)):
                     filename = str(self.results_folder / f'sample_val_recon_{label}.flac')
                     torchaudio.save(filename, recon.cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
-                    print("Val Recon CPU Detach:", recon.cpu().detach().shape)
+                    # print("Val Recon CPU Detach:", recon.cpu().detach().shape)
+            
+            # Length waves: 8
+            # Wave CPU Detach: torch.Size([1, 32000])
+            # Length waves: 8
+            # Val Wave CPU Detach: torch.Size([1, 32000])
+            # Recons Shape: torch.Size([1, 1, 32000])
+            # Train Recon CPU Detach: torch.Size([1, 32000])
+            # Val Recon CPU Detach: torch.Size([1, 32000])
+            # Recons Shape: torch.Size([1, 1, 32000])
+            # Train Recon CPU Detach: torch.Size([1, 32000])
+            # Val Recon CPU Detach: torch.Size([1, 32000])
 
             self.print(f'{steps}: saving to {str(self.results_folder)}')
 
