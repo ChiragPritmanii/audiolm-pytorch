@@ -468,16 +468,16 @@ class SoundStream(Module):
         use_finite_scalar_quantizer = False,            # proposed in https://arxiv.org/abs/2309.15505, adapted for residual quantization
         input_channels = 1,
         discr_multi_scales = (1, 0.5, 0.25),
-        stft_normalized = False,
+        stft_normalized = False, #set this to true
         enc_cycle_dilations = (1, 3, 9),
         dec_cycle_dilations = (1, 3, 9),
         multi_spectral_window_powers_of_two = tuple(range(6, 12)),
         multi_spectral_n_ffts = 512,
         multi_spectral_n_mels = 64,
         recon_loss_weight = 1.,
-        multi_spectral_recon_loss_weight = 1e-5,
+        multi_spectral_recon_loss_weight = 1e-5, #consider increasing this
         adversarial_loss_weight = 1.,
-        feature_loss_weight = 100,
+        feature_loss_weight = 100, #consider increasing this
         quantize_dropout_cutoff_index = 1,
         target_sample_hz = 16000,
         use_local_attn = True,
@@ -665,7 +665,7 @@ class SoundStream(Module):
                 normalized = stft_normalized
             )
 
-            self.mel_spec_transforms.append(melspec_transform)
+            self.mel_spec_transforms.append(melspec_transform) #all the diff config mel spec transforms are appended in this
             self.mel_spec_recon_alphas.append(alpha)
 
         # loss weights
@@ -837,6 +837,11 @@ class SoundStream(Module):
             x, indices, commit_loss = self.rq(x)
         else:
             # finite scalar quantizer does not have any aux loss
+            
+            #self.rq(x) gives out the reconstructed latent representation from the codebook indices
+            #and it also outputs the indices for diff codebooks which need to be used for fetching the vectors
+            #and summing them up to form a reconstructed representation of the input vector
+            #this reconstructed representation is sent as input to the decoder. 
 
             x, indices = self.rq(x)
             commit_loss = self.zero
