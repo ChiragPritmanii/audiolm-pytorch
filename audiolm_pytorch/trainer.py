@@ -1,4 +1,5 @@
 import re
+import random
 import copy
 from math import sqrt
 from datetime import timedelta
@@ -680,7 +681,8 @@ class SoundStreamTrainer(nn.Module):
 
             waves = wave.unbind(dim = 0)
             filename = str(self.results_folder / f'sample_train_gt_{label_step}.flac')
-            torchaudio.save(filename, waves[0].reshape(1,-1).cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
+            random_wave = random.choice(waves)
+            torchaudio.save(filename, random_wave.reshape(1,-1).cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
             # print("Length waves:", len(waves))
             # print("Wave CPU Detach:", waves[0].reshape(1,-1).cpu().detach().shape)
 
@@ -689,7 +691,8 @@ class SoundStreamTrainer(nn.Module):
 
             val_waves = val_wave.unbind(dim = 0)
             filename = str(self.results_folder / f'sample_val_gt_{label_step}.flac')
-            torchaudio.save(filename, val_waves[0].reshape(1,-1).cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
+            random_val_wave = random.choice(val_waves)
+            torchaudio.save(filename, random_val_wave.reshape(1,-1).cpu().detach(), self.unwrapped_soundstream.target_sample_hz)
             # print("Length waves:", len(val_waves))
             # print("Val Wave CPU Detach:", val_waves[0].reshape(1,-1).cpu().detach().shape)
 
@@ -698,8 +701,8 @@ class SoundStreamTrainer(nn.Module):
                 model = model.to(device)
 
                 with torch.inference_mode():
-                    recons = model(waves[0].reshape(1,-1), return_recons_only = True)
-                    val_recons = model(val_waves[0].reshape(1,-1), return_recons_only = True)
+                    recons = model(random_wave.reshape(1,-1), return_recons_only = True)
+                    val_recons = model(random_val_wave.reshape(1,-1), return_recons_only = True)
                     # print("Recons Shape:", recons.shape)
 
                 for ind, recon in enumerate(recons.unbind(dim = 0)):
