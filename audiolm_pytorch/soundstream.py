@@ -461,7 +461,7 @@ class SoundStream(Module):
         rq_commitment_weight = 1.,
         rq_ema_decay = 0.95,
         rq_quantize_dropout_multiple_of = 1,
-        rq_groups = 1,
+        rq_groups = 1, #keep it 1 only
         rq_stochastic_sample_codes = False,
         rq_kwargs: dict = {},
         use_lookup_free_quantizer = False,              # proposed in https://arxiv.org/abs/2310.05737, adapted for residual quantization

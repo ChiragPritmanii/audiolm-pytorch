@@ -685,7 +685,7 @@ class SoundStreamTrainer(nn.Module):
             # print("Wave CPU Detach:", waves[0].reshape(1,-1).cpu().detach().shape)
 
             val_wave, = next(self.valid_dl_iter)
-            val_wave = wave.to(device)
+            val_wave = val_wave.to(device)
 
             val_waves = val_wave.unbind(dim = 0)
             filename = str(self.results_folder / f'sample_val_gt_{label_step}.flac')
